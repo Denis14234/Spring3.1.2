@@ -1,25 +1,24 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Spring Security Example</title>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
 </head>
 <body>
-<h1>User, welcome spring boot security page!</h1>
-
-<div>
-    <th:block>
-        <h1 th:text="'User name - ' + ${messages.getUsername()}"></h1>
-        <h1 th:text="'Email - ' + ${messages.getEmail()}"></h1>
-        <th:block
-                th:each="msg : ${messages.getRoles()}">
-            <h1 th:text="${msg}"></h1>
-        </th:block>
-    </th:block>
+<h2>Your Profile</h2>
+<div th:if="${user}">
+    <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
+    <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+    <p><strong>Roles:</strong>
+        <span th:each="role : ${user.roles}"
+              th:text="${role.getNoPrefix() + (roleStat.last ? '' : ', ')}"></span>
+    </p>
 </div>
-
+<div>
+    <a th:href="@{/}">Home</a>
+</div>
 <form th:action="@{/logout}" method="post">
-    <input type="submit" value="Sign Out"/>
+    <button type="submit">Logout</button>
 </form>
-
 </body>
 </html>

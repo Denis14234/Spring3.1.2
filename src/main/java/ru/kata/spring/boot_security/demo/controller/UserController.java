@@ -1,71 +1,68 @@
 package ru.kata.spring.boot_security.demo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
+import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/admin")
 public class UserController {
+    private final UserService userService;
+    private final RoleService roleService;
 
-    private final UserServiceImpl userService;
-
-    @Autowired
-    public UserController(UserServiceImpl userService) {
+    public UserController(UserService userService, RoleService roleService) {
         this.userService = userService;
+        this.roleService = roleService;
     }
 
     @GetMapping
-    public String users(Model model) {
-        model.addAttribute("users", userService.listUsers());
-        return "users";
+    public String listUsers(Model model) {
+        model.addAttribute("users", userService.findAll());
+        return "admin/users";
     }
 
-    @GetMapping("/create")
-    public String createUserForm(User user, Model model) {
-        model.addAttribute("roleList", userService.listRoles());
-        return "create";
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("user", new User());
+        model.addAttribute("allRoles", roleService.findAll());
+        return "admin/create";
     }
 
-    @PostMapping("/create")
-    public String createUser(/*@ModelAttribute("user") */User user) {
-        List<String> lsr = user.getRoles().stream().map(r -> r.getRole()).collect(Collectors.toList());
-        List<Role> liRo = userService.listByRole(lsr);
-        user.setRoles(liRo);
-        userService.add(user);
+    @PostMapping("/new")
+    public String createUser(@ModelAttribute User user,
+                             @RequestParam Set<Long> roleIds) {
+        Set<Role> selectedRoles = roleService.findRolesByIds(roleIds);
+        user.setRoles(selectedRoles);
+        userService.save(user);
         return "redirect:/admin";
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteUser(@PathVariable("id") Long id) {
-        userService.delete(id);
-        return "redirect:/admin";
-    }
-
-    @GetMapping("/update/{id}")
-    public String updateUserForm(@PathVariable("id") Long id, Model model) {
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
         User user = userService.findById(id);
         model.addAttribute("user", user);
-        model.addAttribute("roleList", userService.listRoles());
-        return "update";
+        model.addAttribute("allRoles", roleService.findAll());
+        return "admin/edit";
     }
 
-    @PostMapping("/update")
-    public String updateUser(User user) {
-        List<String> lsr = user.getRoles().stream().map(r -> r.getRole()).collect(Collectors.toList());
-        List<Role> liRo = userService.listByRole(lsr);
-        user.setRoles(liRo);
+    @PostMapping("/edit")
+    public String updateUser(@ModelAttribute User user,
+                             @RequestParam Set<Long> roleIds) {
+        Set<Role> selectedRoles = roleService.findRolesByIds(roleIds);
+        user.setRoles(selectedRoles);
         userService.update(user);
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/delete/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        userService.delete(id);
         return "redirect:/admin";
     }
 }

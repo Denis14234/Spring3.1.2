@@ -1,25 +1,31 @@
 package ru.kata.spring.boot_security.demo.controller;
+
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import ru.kata.spring.boot_security.demo.dao.UserDaoImp;
-import ru.kata.spring.boot_security.demo.model.User;
+import org.springframework.ui.Model;
 
 import java.security.Principal;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
 @Controller
 public class HelloController {
-    private final UserDaoImp ud;
+    private final UserService userService;
 
-    public HelloController(UserDaoImp ud) {
-        this.ud = ud;
+    public HelloController(UserService userService) {
+        this.userService = userService;
     }
 
-    @GetMapping(value = "/user")
-    public String printWelcome(ModelMap model, Principal princ) {
-        User us = ud.findByName(princ.getName());
-        model.addAttribute("messages", us);
+    @GetMapping("/user")
+    public String showUserInfo(Model model, Principal principal) {
+        User user = userService.findByUsername(principal.getName());
+        model.addAttribute("user", user);
         return "user";
+    }
+
+    @GetMapping("/")
+    public String home() {
+        return "index";
     }
 }

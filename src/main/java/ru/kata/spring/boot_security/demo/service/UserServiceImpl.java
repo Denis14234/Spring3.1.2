@@ -1,88 +1,101 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.kata.spring.boot_security.demo.dao.RoleDaoImpl;
-import ru.kata.spring.boot_security.demo.dao.UserDaoImp;
-import ru.kata.spring.boot_security.demo.model.Role;
+import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    private final UserDao userDao;
+    private final RoleService roleService;
+    private final PasswordEncoder passwordEncoder;
 
-    private final RoleDaoImpl roleDao;
-    private final UserDaoImp userDao;
-
-    public PasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder(12);
-    }
-
-    @Autowired
-    public UserServiceImpl(RoleDaoImpl roleDao, UserDaoImp userDao) {
-        this.roleDao = roleDao;
+    public UserServiceImpl(UserDao userDao, RoleService roleService, PasswordEncoder passwordEncoder) {
         this.userDao = userDao;
+        this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public void delete(Long id) {
-        userDao.delete(id);
-    }
-
-    public void update(User us) {
-        User userBas = findById(us.getId());
-        System.out.println(userBas);
-        System.out.println(us);
-        if (!userBas.getPassword().equals(us.getPassword())) {
-            us.setPassword(bCryptPasswordEncoder().encode(us.getPassword()));
-        }
-        userDao.update(us);
-    }
-
-    public boolean add(User user) {
-        User userBas = userDao.findByName(user.getUsername());
-        if (userBas != null) {
-            return false;
-        }
-        user.setPassword(bCryptPasswordEncoder().encode(user.getPassword()));
-        userDao.add(user);
-        return true;
-    }
-
-    public List<User> listUsers() {
-        return userDao.listUsers();
-    }
-
+    @Override
+    @Transactional(readOnly = true)
     public User findById(Long id) {
+        log.debug("Finding user by id: {}", id);
         return userDao.findById(id);
     }
 
-    public Role findByIdRole(Long id) {
-        return roleDao.findByIdRole(id);
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> findAll() {
+        log.debug("Retrieving all users");
+        return userDao.findAll();
     }
 
-    public List<Role> listRoles() {
-        return roleDao.listRoles();
+    @Override
+    @Transactional(readOnly = true)
+    public User findByUsername(String username) {
+        log.debug("Finding user by username: {}", username);
+        return userDao.findByUsername(username);
     }
 
-    public Role findByNameRole(String name) {
-        return roleDao.findByName(name);
-    }
-
-    public List<Role> listByRole(List<String> name) {
-        return roleDao.listByName(name);
-    }
-
-    public boolean addRole(Role role) {
-        Role userBas = roleDao.findByName(role.getRole());
-        if (userBas != null) {
-            return false;
+    @Override
+    @Transactional
+    public void save(User user) {
+        if (existsByUsername(user.getUsername())) {
+            log.error("User already exists: {}", user.getUsername());
+            throw new IllegalArgumentException("User already exists");
         }
-        roleDao.add(role);
-        return true;
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        log.info("Creating new user: {}", user.getUsername());
+        userDao.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void update(User user) {
+        User existingUser = findById(user.getId());
+
+        if (!existingUser.getPassword().equals(user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            log.info("Updating password for user: {}", user.getUsername());
+        }
+
+        log.info("Updating user: {}", user.getUsername());
+        userDao.update(user);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        log.info("Deleting user with id: {}", id);
+        userDao.delete(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByUsername(String username) {
+        return userDao.existsByUsername(username);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String username) {
+        User user = findByUsername(username);
+        if (user == null) {
+            log.error("User not found: {}", username);
+            throw new UsernameNotFoundException("User not found");
+        }
+        return user;
     }
 }

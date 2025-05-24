@@ -1,39 +1,79 @@
 package ru.kata.spring.boot_security.demo.init;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
+import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.UserService;
+
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+
 
 @Component
 public class Init {
+    private final UserService userService;
+    private final RoleService roleService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserServiceImpl userService;
+    public Init(UserService userService,
+                RoleService roleService,
+                PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @PostConstruct
     public void init() {
-        Role role1 = new Role("ROLE_ADMIN");
-        Role role2 = new Role("ROLE_USER");
+        initializeRoles();
+        initializeAdminUser();
+        initializeRegularUser();
+    }
 
-        userService.addRole(role1);
-        userService.addRole(role2);
+    private void initializeRoles() {
+        if (roleService.findAll().isEmpty()) {
+            Role adminRole = new Role("ROLE_ADMIN");
+            Role userRole = new Role("ROLE_USER");
+            roleService.save(adminRole);
+            roleService.save(userRole);
+        }
+    }
 
-        List<Role> roleAdmin = new ArrayList<>();
-        List<Role> roleUser = new ArrayList<>();
+    private void initializeAdminUser() {
+        if (!userService.existsByUsername("admin")) {
+            Role adminRole = roleService.findByName("ROLE_ADMIN");
+            if (adminRole == null) {
+                throw new IllegalStateException("Admin role not found. Initialize roles first!");
+            }
 
-        roleAdmin.add(role1);
-        roleUser.add(role2);
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin"));
+            admin.setRoles(Collections.singleton(adminRole));
+            userService.save(admin);
 
-        User user1 = new User("admin", "admin", "admin@google.com", roleAdmin);
-        User user2 = new User("user", "user", "user@yandex.ru", roleUser);
 
-        userService.add(user1);
-        userService.add(user2);
+        }
+    }
+
+    private void initializeRegularUser() {
+        if (!userService.existsByUsername("user")) {
+            Role userRole = roleService.findByName("ROLE_USER");
+            if (userRole == null) {
+                throw new IllegalStateException("User role not found. Initialize roles first!");
+            }
+
+            User regularUser = new User();
+            regularUser.setUsername("user");
+            regularUser.setPassword(passwordEncoder.encode("user"));
+            regularUser.setEmail("user@example.com");
+            regularUser.setRoles(Collections.singleton(userRole));
+            userService.save(regularUser);
+        }
     }
 }

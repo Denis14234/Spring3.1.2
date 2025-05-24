@@ -5,7 +5,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -15,7 +16,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username")
+    @Column(name = "username" , unique = true, nullable = false)
     private String username;
 
     @Column(name = "password")
@@ -24,23 +25,23 @@ public class User implements UserDetails {
     @Column(name = "email")
     private String email;
 
-    @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(name="users_roles",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-    private List<Role> roles;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
     public User() {
     }
 
-    public User(String userName, String password, String email, List<Role> roles) {
+    public User(String userName, String password, String email, Set<Role> roles) {
         this.username = userName;
         this.password = password;
         this.email = email;
         this.roles = roles;
     }
 
-    public User(Long id, String userName, String password, String email, List<Role> roles) {
+    public User(Long id, String userName, String password, String email, Set<Role> roles) {
         this.id = id;
         this.username = userName;
         this.password = password;
@@ -107,11 +108,11 @@ public class User implements UserDetails {
         this.email = email;
     }
 
-    public List<Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<Role> roles) {
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
 
