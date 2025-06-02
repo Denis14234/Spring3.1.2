@@ -1,0 +1,31 @@
+<th:block th:insert="~{fragments/header :: header}">
+    <title>Login</title>
+</th:block>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Please sign in</h4>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/login}" method="post">
+                    <div th:if="${param.error}" class="alert alert-danger">
+                        Invalid username or password
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Sign in</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:insert="~{fragments/footer :: footer}"></th:block>

@@ -1,0 +1,50 @@
+<th:block th:insert="~{fragments/header :: header}">
+    <title>Delete User</title>
+</th:block>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">Delete User</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <strong>Warning!</strong> You are about to delete this user permanently.
+                </div>
+
+                <table class="table table-bordered">
+                    <tr>
+                        <th>ID</th>
+                        <td th:text="${user.id}"></td>
+                    </tr>
+                    <tr>
+                        <th>Username</th>
+                        <td th:text="${user.username}"></td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td th:text="${user.email}"></td>
+                    </tr>
+                    <tr>
+                        <th>Roles</th>
+                        <td>
+                            <span th:each="role : ${user.roles}"
+                                  th:text="${role.role.replace('ROLE_', '') + (roleStat.last ? '' : ', ')}">
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+
+                <form th:action="@{'/admin/delete/' + ${user.id}}" method="post">
+                    <div class="d-flex justify-content-end">
+                        <a th:href="@{/admin}" class="btn btn-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:insert="~{fragments/footer :: footer}"></th:block>

@@ -1,0 +1,53 @@
+<th:block th:insert="~{fragments/header :: header}">
+    <title>Add New User</title>
+</th:block>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Add New User</h4>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/new}" th:object="${user}" method="post">
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+                        <div th:each="err : ${#fields.errors('*')}" th:text="${err}"></div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" th:field="*{username}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" th:field="*{email}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" th:field="*{password}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Roles</label>
+                        <select class="form-select" th:field="*{roles}" multiple>
+                            <option th:each="role : ${allRoles}"
+                                    th:value="${role.id}"
+                                    th:text="${role.role.replace('ROLE_', '')}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <a th:href="@{/admin}" class="btn btn-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:insert="~{fragments/footer :: footer}"></th:block>
