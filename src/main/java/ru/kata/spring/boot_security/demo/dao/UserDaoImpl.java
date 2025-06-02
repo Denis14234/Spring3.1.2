@@ -25,7 +25,6 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return entityManager.createQuery("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username", User.class)
                 .setParameter("username", username)

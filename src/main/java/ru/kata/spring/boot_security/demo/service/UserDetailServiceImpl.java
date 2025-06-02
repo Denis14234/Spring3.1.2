@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
-@Primary
 public class UserDetailServiceImpl implements UserDetailsService {
 
     private final UserDao userDao;
@@ -27,23 +26,21 @@ public class UserDetailServiceImpl implements UserDetailsService {
         this.userDao = userDao;
     }
 
-    public User findByUsername(String userName) {
+    private User findByUsername(String userName) {
         return userDao.findByUsername(userName);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = findByUsername(username);
         if (user == null) {
-            throw new UsernameNotFoundException(username + " not found");
+            throw new UsernameNotFoundException("User not found");
         }
-
-        if (user.getRoles() != null) {
-            user.getRoles().size();
-        }
-
-        return user;
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                user.getAuthorities());
     }
 
     private Collection<? extends GrantedAuthority> aug(Collection<Role> roles) {

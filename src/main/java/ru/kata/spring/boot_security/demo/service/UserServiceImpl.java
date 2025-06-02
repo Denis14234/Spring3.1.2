@@ -88,14 +88,4 @@ public class UserServiceImpl implements UserService {
         return userDao.existsByUsername(username);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) {
-        User user = findByUsername(username);
-        if (user == null) {
-            log.error("User not found: {}", username);
-            throw new UsernameNotFoundException("User not found");
-        }
-        return user;
-    }
 }
