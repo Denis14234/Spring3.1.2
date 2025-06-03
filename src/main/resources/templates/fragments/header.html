@@ -2,28 +2,27 @@
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="header">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container">
-        <a class="navbar-brand" href="/">User Management</a>
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-people-fill"></i> User Management
+        </a>
+
         <div class="d-flex align-items-center">
-            <span class="user-info" th:if="${currentUser}">
-            <span th:text="${currentUser.username}"></span> |
-            <span th:each="role : ${currentUser.roles}"
-            th:text="${role.getNoPrefix() + (roleStat.last ? '' : ', ')}">
+            <span class="navbar-text me-3" th:if="${currentUser}">
+                <i class="bi bi-person-check"></i>
+                <span th:text="${currentUser.username}"></span>
             </span>
-            </span>
-            <form th:action="@{/logout}" method="post" th:if="${currentUser}">
-                <button class="btn btn-outline-light btn-sm" type="submit">Logout</button>
-            </form>
+
+            <div class="btn-group" th:if="${currentUser}">
+                <a th:href="@{/user}" class="btn btn-outline-light me-2">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn btn-outline-light">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </nav>
-<style>
-    .navbar-brand {
-        font-weight: 600;
-    }
-
-    .user-info {
-        color: rgba(255, 255, 255, .75);
-        margin-right: 15px;
-    }
-</style>
 </html>
